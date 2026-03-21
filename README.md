@@ -1,204 +1,158 @@
-# 📦 Proyecto AdoptMe - Sistema de Mocking
+# 📦 Proyecto AdoptMe - Sistema de Adopción de Mascotas
 
 ## 👤 Información del Proyecto
 
 **Alumna:** Delfina Caradonna  
 **Curso:** Backend III - CoderHouse  
-**Entrega:** Primera Entrega - Sistema de Mocking con Faker.js  
-**Fecha:** Febrero 2026
+**Entrega:** Entrega Final - Dockerización y Testing  
+**Fecha:** Marzo 2026
+
+---
+
+## 🐳 Imagen Docker
+
+### DockerHub
+
+**Link a la imagen:**  
+🔗 **[https://hub.docker.com/r/delfinacaradonna/adoptme-backend](https://hub.docker.com/r/delfinacaradonna/adoptme-backend)**
+
+### Uso Rápido
+
+```bash
+# Descargar la imagen
+docker pull delfinacaradonna/adoptme-backend:latest
+
+# Ejecutar con MongoDB local
+docker run -p 8080:8080 \
+  -e MONGO_URI=mongodb://host.docker.internal:27017/adoptme \
+  delfinacaradonna/adoptme-backend:latest
+
+# O usar docker-compose (incluye MongoDB)
+docker-compose up
+```
 
 ---
 
 ## 📋 Descripción del Proyecto
 
-Implementación de un sistema completo de **mocking de datos** para la aplicación AdoptMe, utilizando **Faker.js** para generar datos aleatorios de usuarios y mascotas. El sistema permite crear datos de prueba de manera rápida y eficiente para testing y desarrollo.
+Sistema backend completo para adopción de mascotas que incluye:
+
+- ✅ API RESTful con Express
+- ✅ Base de datos MongoDB
+- ✅ Sistema de mocking con Faker.js
+- ✅ Documentación con Swagger
+- ✅ Tests funcionales con Mocha, Chai y Supertest
+- ✅ Dockerización completa
 
 ---
 
-## 🎯 Objetivos Cumplidos
+## 🎯 Entrega Final - Objetivos Cumplidos
 
-### ✅ Requisitos Implementados
+### ✅ 1. Documentación con Swagger
 
-1. **Router de Mocking** (`/api/mocks`)
-   - Creado router `mocks.router.js` que funciona bajo la ruta base `/api/mocks`
+**Módulo documentado:** Users
 
-2. **Módulo de Generación** (`mockingModule.js`)
-   - Genera usuarios con las siguientes características:
-     - Contraseña "coder123" **encriptada** con bcrypt
-     - Role aleatorio entre "user" y "admin"
-     - Campo "pets" como array vacío
+**Endpoints documentados:**
 
-3. **Endpoint GET /mockingusers**
-   - Genera 50 usuarios mock con formato compatible con MongoDB
-   - Solo genera datos (no los inserta en BD)
+- `GET /api/users` - Obtener todos los usuarios
+- `GET /api/users/:uid` - Obtener un usuario por ID
+- `PUT /api/users/:uid` - Actualizar un usuario
+- `DELETE /api/users/:uid` - Eliminar un usuario
 
-4. **Endpoint POST /generateData**
-   - Recibe parámetros numéricos `users` y `pets`
-   - Genera e inserta usuarios y mascotas en la base de datos
-   - Establece relación bidireccional: User ↔ Pets
+**Acceso a la documentación:**
 
-5. **Verificación de Datos**
-   - Los registros pueden verificarse mediante los servicios GET de users y pets
-   - Endpoints adicionales para visualización optimizada
+```
+http://localhost:8080/apidocs
+```
+
+**Archivo de documentación:**
+
+- `src/docs/Users/Users.yaml`
 
 ---
 
-## 🚀 Endpoints Implementados
+### ✅ 2. Tests Funcionales
 
-### 1. GET `/api/mocks/mockingusers`
-Genera 50 usuarios mock sin guardarlos en la base de datos.
+**Router testeado:** `adoption.router.js`
 
-**Request:**
+**Endpoints testeados:**
+
+- ✅ `GET /api/adoptions` - Obtener todas las adopciones
+- ✅ `GET /api/adoptions/:aid` - Obtener una adopción por ID
+- ✅ `POST /api/adoptions/:uid/:pid` - Crear adopción
+
+**Casos de prueba implementados:**
+
+- Tests de éxito (200, 201)
+- Tests de error (400, 404, 500)
+- Validaciones de datos
+- Casos edge (mascota ya adoptada, usuario no existe, etc.)
+
+**Total de tests:** 10 tests funcionales
+
+**Ejecutar tests:**
+
 ```bash
-GET http://localhost:8080/api/mocks/mockingusers
+npm test
 ```
 
-**Response:**
-```json
-{
-  "status": "success",
-  "payload": [
-    {
-      "first_name": "John",
-      "last_name": "Doe",
-      "email": "john.doe@example.com",
-      "password": "$2b$10$XYZ...",
-      "role": "user",
-      "pets": []
-    }
-    // ... 49 usuarios más
-  ]
-}
-```
+**Archivo de tests:**
+
+- `test/adoptions.test.js`
 
 ---
 
-### 2. POST `/api/mocks/generateData`
-Genera e inserta usuarios con mascotas en la base de datos.
+### ✅ 3. Dockerización
 
-**Request:**
+**Dockerfile creado:** ✅
+
+**Construir imagen:**
+
 ```bash
-POST http://localhost:8080/api/mocks/generateData
-Content-Type: application/json
-
-{
-  "users": 5,
-  "pets": 3
-}
-```
-
-**Parámetros:**
-- `users`: Cantidad de usuarios a crear
-- `pets`: Cantidad de mascotas **por usuario**
-
-**Response:**
-```json
-{
-  "status": "success",
-  "message": "Se generaron 5 usuarios, cada uno con 3 mascotas",
-  "payload": {
-    "usersInserted": 5,
-    "petsInserted": 15,
-    "petsPerUser": 3
-  }
-}
-```
-
-**Resultado:**
-- Se crean 5 usuarios en la colección `users`
-- Se crean 15 mascotas en la colección `pets` (5 × 3)
-- Cada mascota tiene su `owner` asignado
-- Cada usuario tiene su array `pets` con las referencias
-
----
-
-### 3. GET `/api/mocks/users`
-Obtiene todos los usuarios con sus mascotas pobladas.
-
-**Request:**
-```bash
-GET http://localhost:8080/api/mocks/users
-```
-
-**Response:**
-```json
-{
-  "status": "success",
-  "count": 5,
-  "payload": [
-    {
-      "_id": "507f1f77bcf86cd799439011",
-      "first_name": "John",
-      "last_name": "Doe",
-      "email": "john.doe@example.com",
-      "role": "user",
-      "pets": [
-        {
-          "_id": "507f1f77bcf86cd799439012",
-          "name": "Max",
-          "specie": "dog",
-          "adopted": true,
-          "owner": "507f1f77bcf86cd799439011"
-        }
-        // ... más mascotas
-      ]
-    }
-    // ... más usuarios
-  ]
-}
+docker build -t adoptme-backend .
 ```
 
 ---
 
-### 4. GET `/api/mocks/pets`
-Obtiene todas las mascotas con resumen de adoptadas/disponibles.
+### ✅ 4. Imagen en DockerHub
 
-**Request:**
-```bash
-GET http://localhost:8080/api/mocks/pets
-```
-
-**Response:**
-```json
-{
-  "status": "success",
-  "count": 15,
-  "summary": {
-    "total": 15,
-    "adopted": 15,
-    "available": 0
-  },
-  "payload": [
-    {
-      "_id": "507f1f77bcf86cd799439012",
-      "name": "Max",
-      "specie": "dog",
-      "birthDate": "2020-05-15T00:00:00.000Z",
-      "adopted": true,
-      "owner": "507f1f77bcf86cd799439011"
-    }
-    // ... más mascotas
-  ]
-}
-```
+**Repositorio:** [delfinacaradonna/adoptme-backend](https://hub.docker.com/r/delfinacaradonna/adoptme-backend)
 
 ---
 
-## 📁 Estructura de Archivos
+## 🚀 Endpoints de la API
 
-```
-src/
-├── routes/
-│   └── mocks.router.js          ← Router principal de mocking
-├── utils/
-│   └── mockingModule.js         ← Módulo de generación con Faker.js
-├── dao/
-│   ├── Users.dao.js             ← DAO de usuarios (existente)
-│   └── Pets.dao.js              ← DAO de mascotas (existente)
-└── models/
-    ├── User.js                  ← Modelo de usuario (existente)
-    └── Pet.js                   ← Modelo de mascota (existente)
-```
+### Users
+
+- `GET /api/users` - Obtener todos los usuarios
+- `GET /api/users/:uid` - Obtener usuario por ID
+- `PUT /api/users/:uid` - Actualizar usuario
+- `DELETE /api/users/:uid` - Eliminar usuario
+
+### Pets
+
+- `GET /api/pets` - Obtener todas las mascotas
+- `GET /api/pets/:pid` - Obtener mascota por ID
+- `POST /api/pets` - Crear mascota
+- `PUT /api/pets/:pid` - Actualizar mascota
+- `DELETE /api/pets/:pid` - Eliminar mascota
+
+### Adoptions
+
+- `GET /api/adoptions` - Obtener todas las adopciones
+- `GET /api/adoptions/:aid` - Obtener adopción por ID
+- `POST /api/adoptions/:uid/:pid` - Crear adopción
+
+### Mocks (Sistema de Generación de Datos)
+
+- `GET /api/mocks/mockingusers` - Generar 50 usuarios
+- `GET /api/mocks/users` - Ver usuarios con mascotas
+- `GET /api/mocks/pets` - Ver mascotas con resumen
+- `POST /api/mocks/generateData` - Crear usuarios y mascotas
+
+### Documentación
+
+- `GET /apidocs` - Swagger UI
 
 ---
 
@@ -210,30 +164,48 @@ src/
 - **Mongoose** - ODM para MongoDB
 - **@faker-js/faker** - Generación de datos aleatorios
 - **bcrypt** - Encriptación de contraseñas
+- **swagger-jsdoc** - Generación de specs Swagger
+- **swagger-ui-express** - Interfaz de Swagger
+- **mocha** - Framework de testing
+- **chai** - Librería de aserciones
+- **supertest** - Testing de APIs HTTP
+- **Docker** - Containerización
 
 ---
 
-## 📦 Instalación y Configuración
+## 📦 Instalación Local
 
-### 1. Clonar el repositorio
+### Prerequisitos
+
+- Node.js 18+
+- MongoDB 6+
+- Docker (opcional)
+
+### Setup
+
+1. **Clonar el repositorio**
+
 ```bash
-git clone <url-del-repositorio>
-cd adoptme-backend
+git clone https://github.com/DelfinaCaradonna/entrega-1-backend-3.git
+cd entrega-1-backend-3
 ```
 
-### 2. Instalar dependencias
+2. **Instalar dependencias**
+
 ```bash
 npm install
 ```
 
-### 3. Configurar variables de entorno
-Crear archivo `.env` en la raíz:
-```env
+3. **Configurar variables de entorno**
+
+```bash
+# Crear archivo .env
 PORT=8080
 MONGO_URI=mongodb://localhost:27017/adoptme
 ```
 
-### 4. Iniciar MongoDB
+4. **Iniciar MongoDB**
+
 ```bash
 # Windows
 net start MongoDB
@@ -245,193 +217,199 @@ brew services start mongodb-community
 sudo systemctl start mongod
 ```
 
-### 5. Iniciar el servidor
+5. **Iniciar servidor**
+
 ```bash
 npm start
 ```
 
+6. **Acceder a la aplicación**
+
+```
+API: http://localhost:8080
+Swagger: http://localhost:8080/apidocs
+```
+
 ---
 
-## 🧪 Ejemplos de Uso
+## 🐳 Uso con Docker
 
-### Ejemplo 1: Generar datos de prueba
+### Opción 1: Solo la aplicación
+
 ```bash
-# Crear 10 usuarios, cada uno con 5 mascotas
-curl -X POST http://localhost:8080/api/mocks/generateData \
-  -H "Content-Type: application/json" \
-  -d '{"users": 10, "pets": 5}'
+# Build
+docker build -t adoptme-backend .
+
+# Run (necesitas MongoDB corriendo)
+docker run -p 8080:8080 \
+  -e MONGO_URI=mongodb://host.docker.internal:27017/adoptme \
+  adoptme-backend
 ```
 
-**Resultado:** 10 usuarios y 50 mascotas en la BD
+### Opción 2: Con Docker Compose (incluye MongoDB)
 
----
-
-### Ejemplo 2: Ver usuarios generados
 ```bash
-curl http://localhost:8080/api/mocks/users
+docker-compose up
 ```
 
----
+Esto levantará:
 
-### Ejemplo 3: Verificar mascotas
+- Aplicación en `http://localhost:8080`
+- MongoDB en `localhost:27017`
+
+### Opción 3: Desde DockerHub
+
 ```bash
-curl http://localhost:8080/api/mocks/pets
+# Descargar y ejecutar
+docker pull delfinacaradonna/adoptme-backend:latest
+
+docker run -p 8080:8080 \
+  -e MONGO_URI=mongodb://host.docker.internal:27017/adoptme \
+  delfinacaradonna/adoptme-backend:latest
 ```
 
 ---
 
-### Ejemplo 4: Usar endpoints originales
+## 🧪 Testing
+
+### Ejecutar todos los tests
+
 ```bash
-# También funcionan los endpoints principales del proyecto
-curl http://localhost:8080/api/users
-curl http://localhost:8080/api/pets
+npm test
+```
+
+### Ver coverage
+
+```bash
+npm run test:coverage
+```
+
+### Tests incluidos
+
+- ✅ 10 tests funcionales para Adoptions
+- ✅ Casos de éxito y error
+- ✅ Validaciones de datos
+- ✅ Tests de integración
+
+---
+
+## 📚 Documentación Swagger
+
+La documentación interactiva de la API está disponible en:
+
+```
+http://localhost:8080/apidocs
+```
+
+### Características:
+
+- Documentación completa del módulo Users
+- Schemas de datos
+- Request/Response bodies
+- Ejemplos de uso
+- "Try it out" para probar endpoints
+
+---
+
+## 📁 Estructura del Proyecto
+
+```
+adoptme-backend/
+├── src/
+│   ├── controllers/
+│   │   ├── users.controller.js
+│   │   ├── pets.controller.js
+│   │   └── adoptions.controller.js
+│   ├── dao/
+│   │   ├── Users.dao.js
+│   │   ├── Pets.dao.js
+│   │   └── Adoption.js
+│   ├── models/
+│   │   ├── User.js
+│   │   ├── Pet.js
+│   │   └── Adoption.js
+│   ├── routes/
+│   │   ├── users.router.js
+│   │   ├── pets.router.js
+│   │   ├── adoption.router.js
+│   │   └── mocks.router.js
+│   ├── services/
+│   ├── utils/
+│   │   └── mockingModule.js
+│   ├── docs/
+│   │   └── Users/
+│   │       └── Users.yaml
+│   └── app.js
+├── test/
+│   └── adoptions.test.js
+├── Dockerfile
+├── docker-compose.yml
+├── .dockerignore
+├── package.json
+└── README.md
 ```
 
 ---
 
-## 🎨 Características del Sistema de Mocking
+## 🔐 Variables de Entorno
 
-### Datos Generados - Usuarios
+```env
+# Servidor
+PORT=8080
+NODE_ENV=production
 
-Cada usuario generado incluye:
-- ✅ `first_name`: Nombre aleatorio realista
-- ✅ `last_name`: Apellido aleatorio realista
-- ✅ `email`: Email único y válido
-- ✅ `password`: Hash bcrypt de "coder123"
-- ✅ `role`: Aleatorio entre "user" y "admin"
-- ✅ `pets`: Array con referencias a sus mascotas
+# Base de datos
+MONGO_URI=mongodb://localhost:27017/adoptme
 
-**Ejemplo de contraseña encriptada:**
-```
-Texto plano: "coder123"
-Hash: "$2b$10$XQ8Z9J6YW.Yp8F9vK2X8.eR5nH3mP9oL7kJ4fD8sA9pQ2wE6rT7yK"
+# JWT (si aplica)
+JWT_SECRET=your-secret-key
 ```
 
 ---
 
-### Datos Generados - Mascotas
+## 🎓 Aprendizajes de la Entrega Final
 
-Cada mascota generada incluye:
-- ✅ `name`: Nombre aleatorio
-- ✅ `specie`: dog, cat, bird, fish, hamster, rabbit o turtle
-- ✅ `birthDate`: Fecha aleatoria en los últimos 10 años
-- ✅ `adopted`: true (si tiene owner) / false (si no tiene)
-- ✅ `owner`: ObjectId del usuario dueño o null
+Durante esta entrega final se implementaron y aprendieron:
 
----
-
-## 🔐 Seguridad
-
-### Encriptación de Contraseñas
-Todas las contraseñas se encriptan usando **bcrypt** con salt rounds de 10:
-
-```javascript
-import bcrypt from 'bcrypt';
-const hashedPassword = bcrypt.hashSync('coder123', 10);
-```
-
-### Verificación de Contraseña
-Para verificar que la contraseña "coder123" es correcta:
-
-```javascript
-const isMatch = bcrypt.compareSync('coder123', usuario.password);
-// Retorna: true
-```
+1. **Documentación de APIs** con Swagger/OpenAPI
+2. **Testing funcional** con Mocha, Chai y Supertest
+3. **Dockerización** de aplicaciones Node.js
+4. **Multi-stage builds** para optimización
+5. **Docker Compose** para orquestación
+6. **DockerHub** para distribución de imágenes
+7. **Health checks** en contenedores
+8. **Seguridad** en Docker (usuarios no-root)
 
 ---
 
-## 📊 Relación de Datos
+## ✅ Criterios de Evaluación Cumplidos
 
-### Estructura de Relación User-Pet
+### Desarrollo de Tests Funcionales ✅
 
-```
-┌─────────────────┐
-│     User        │
-├─────────────────┤
-│ _id: ObjectId   │◄──┐
-│ first_name      │   │
-│ last_name       │   │
-│ email           │   │
-│ password        │   │
-│ role            │   │
-│ pets: [         │   │
-│   {_id: ...}    │───┤
-│   {_id: ...}    │───┤
-│ ]               │   │
-└─────────────────┘   │
-                      │
-                      │
-┌─────────────────┐   │
-│      Pet        │   │
-├─────────────────┤   │
-│ _id: ObjectId   │◄──┘
-│ name            │
-│ specie          │
-│ birthDate       │
-│ adopted: true   │
-│ owner: ObjectId │───┐
-└─────────────────┘   │
-         △____________┘
-         Relación bidireccional
-```
+- [x] Tests desarrollados para todos los endpoints de `adoption.router.js`
+- [x] Todos los endpoints cubiertos
+- [x] Tests verifican funcionamiento efectivo
+- [x] Incluye casos de éxito y error
 
----
+### Creación del Dockerfile ✅
 
-## ✅ Verificación de Requisitos
+- [x] Dockerfile creado correctamente
+- [x] Configurado para construir la imagen adecuadamente
+- [x] Imagen reproducible
+- [x] Incluye todos los pasos necesarios (dependencias, archivos, entorno)
 
-| Requisito | Estado | Descripción |
-|-----------|--------|-------------|
-| Router `/api/mocks` | ✅ | Implementado en `mocks.router.js` |
-| Módulo de Mocking | ✅ | `mockingModule.js` con Faker.js |
-| Contraseña encriptada | ✅ | Hash bcrypt de "coder123" |
-| Role aleatorio | ✅ | "user" o "admin" |
-| Pets array vacío | ✅ | En endpoint `/mockingusers` |
-| GET `/mockingusers` | ✅ | Genera 50 usuarios |
-| POST `/generateData` | ✅ | Recibe users y pets |
-| Inserción en BD | ✅ | Guarda en MongoDB |
-| Verificación GET | ✅ | Endpoints de verificación |
-| Formato Mongo | ✅ | Compatible con Mongoose |
+### Subida a DockerHub ✅
 
----
+- [x] Imagen subida a DockerHub
+- [x] Imagen disponible públicamente
+- [x] Link incluido en README
 
-## 🎓 Aprendizajes del Proyecto
+### Documentación en README ✅
 
-Durante este proyecto se implementaron y aprendieron los siguientes conceptos:
-
-1. **Generación de datos mock** con Faker.js
-2. **Encriptación de contraseñas** con bcrypt
-3. **Relaciones en MongoDB** (User-Pets bidireccional)
-4. **Manejo de DAOs** y modelos en Mongoose
-5. **Diseño de APIs RESTful** con Express
-6. **Validación de datos** en endpoints
-7. **Manejo de errores** y respuestas HTTP
-
----
-
-## 📝 Notas Adicionales
-
-### Formato de Respuestas
-Todos los endpoints siguen un formato consistente:
-```json
-{
-  "status": "success" | "error",
-  "message": "...",
-  "payload": { ... }
-}
-```
-
-### Compatibilidad
-El sistema es totalmente compatible con:
-- Los modelos existentes de User y Pet
-- Los DAOs que usan método `save()`
-- Los endpoints originales del proyecto
-
-### Testing
-Los datos generados son ideales para:
-- Desarrollo local
-- Testing de funcionalidades
-- Demostración del proyecto
-- Pruebas de carga
+- [x] README contiene información detallada
+- [x] Link a imagen de DockerHub incluido
+- [x] Instrucciones claras para ejecutar con Docker
+- [x] Detalles de construcción, ejecución y uso
 
 ---
 
@@ -439,7 +417,8 @@ Los datos generados son ideales para:
 
 **Alumna:** Delfina Caradonna  
 **Curso:** Backend III - CoderHouse  
-**Proyecto:** AdoptMe - Sistema de Mocking
+**GitHub:** [github.com/DelfinaCaradonna](https://github.com/DelfinaCaradonna)  
+**DockerHub:** [hub.docker.com/r/delfinacaradonna](https://hub.docker.com/r/delfinacaradonna)
 
 ---
 
@@ -451,10 +430,15 @@ Este proyecto fue desarrollado como parte del curso de Backend de CoderHouse.
 
 ## 🎉 Estado del Proyecto
 
-✅ **Proyecto completado y funcional**
+✅ **Entrega Final completada y funcional**
 
-Todos los requisitos de la primera entrega han sido implementados exitosamente.
+Todos los requisitos de la entrega final han sido implementados exitosamente:
+
+- ✅ Documentación con Swagger
+- ✅ Tests funcionales completos
+- ✅ Dockerización
+- ✅ Imagen en DockerHub
 
 ---
 
-**Desarrollado con ❤️ por Delfina Caradonna**  
+**Desarrollado con ❤️ por Delfina Caradonna**
